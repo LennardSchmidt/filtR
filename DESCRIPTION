@@ -1,0 +1,23 @@
+Package: filtR
+Type: Package
+Title: Filter Simulation and Validity Checker
+Version: 0.1.0
+Author: Lennard Lukas Schmidt
+Maintainer: Lennard Lukas Schmidt <lennardschmidt@outlook.com>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    dplyr,
+    effsize,
+    purrr,
+    pwr,
+    rlang,
+    tibble,
+    tidyr,
+    magrittr
+RoxygenNote: 6.1.1
+Suggests: 
+    testthat
