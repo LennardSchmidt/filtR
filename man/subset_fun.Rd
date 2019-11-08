@@ -4,21 +4,21 @@
 \alias{subset_fun}
 \title{Subsets original dataset and calculates validity metrics}
 \usage{
-subset_fun(x, target1, target2, dat)
+subset_fun(x, target1, target2 = NULL, groupvar = NULL, dat)
 }
 \arguments{
 \item{x}{input from wrapper}
 
-\item{t1}{the name of the}
+\item{target1}{the name of the}
 
-\item{t2}{bla}
+\item{target2}{bla}
 
-\item{gv}{bla}
+\item{groupvar}{bla}
 
-\item{df}{bla}
+\item{dat}{bla}
 }
 \value{
-a tibble with validity criteria
+a vector with validity criteria
 }
 \description{
 Subsets original dataset and calculates validity metrics

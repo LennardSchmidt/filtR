@@ -1,4 +1,5 @@
-category("options")
-library(Ecdat)
-
-df <- data(treatment)
+# category("options")
+# library(Ecdat)
+#
+# df <- data(treatment)
+#

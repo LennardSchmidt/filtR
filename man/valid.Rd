@@ -13,7 +13,10 @@ valid(target1, target2 = NULL, groupvar = NULL, dat)
 
 \item{groupvar}{bla}
 
-\item{df}{bla}
+\item{dat}{bla}
+}
+\value{
+a data.frame including
 }
 \description{
 Checking the validity of dataset
