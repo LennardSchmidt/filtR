@@ -12,12 +12,12 @@ LazyData: true
 Imports: 
     dplyr,
     effsize,
+    magrittr,
     purrr,
     pwr,
     rlang,
     tibble,
-    tidyr,
-    magrittr
+    tidyr
 RoxygenNote: 6.1.1
 Suggests: 
     testthat

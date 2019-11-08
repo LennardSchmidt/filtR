@@ -8,54 +8,47 @@
 #' Subsets original dataset and calculates validity metrics
 #'
 #' @param x input from wrapper
-#' @inheritParams valid
+#' @param t1 the name of the
+#' @param t2 bla
+#' @param gv bla
+#' @param df bla
 #'
-#' @import rlang
+#' @importFrom  rlang .data
 #' @import dplyr
 #' @import pwr
 #' @import tibble
-#' @importFrom magrittr %>%
+#' @import magrittr
 #' @importFrom effsize cohen.d
 #'
 #' @return a tibble with validity criteria
 
-subset_fun <- function(x) {
+subset_fun <- function(x, target1, target2, dat) {
+  names <- names(x)
 
-    names <- names(x)
-    data <- as_tibble(.data$df)
+  # Filter
+  for (name in names) {
+    y <- x[name]
 
-    # Create subset
-    for (name in names) {
-        val <- x[[name]]
-
-        if (is.factor(val)) {
-            data <- data %>% filter(!!sym(name) == val)
-
-        } else if (is.numeric(val)) {
-            data <- data %>% filter(!!sym(name) <= val)
-
-        }
+    if (is.factor(dat[, name])) {
+      dat <- subset(dat, select = name == y)
+    } else if (is.numeric(dat[, name])) {
+      dat <- subset(dat, select = name <= y)
+    } else if (is.character(dat[, name])) {
+      dat <- subset(dat, select = name <= y)
     }
+  }
 
-    # Select variables
-    data <- data %>% select(.data$target1, .data$target2) %>% as_tibble()
+  eff_data <- subset(dat, select = c(eval(parse(text = target1)), eval(parse(text = target2))))
 
-    # Calculate metrics
-    if (!is.null(.data$target2)) {
-        n <- nrow(data)
-        esize <- cohen.d(data[[.data$target1]], data[[.data$target2]], na.rm = T)$estimate
-        pwr <- pwr.t.test(n = n, d = esize, type = "paired")$power
-    } else {
-        n1 <- table(data[[.data$groupvar]])[1]
-        n2 <- table(data[[.data$groupvar]])[2]
-        esize <- cohen.d(data[[.data$target1]], data[[.data$groupvar]])
-        pwr <- pwr.t2n.test(n = n1, n2 = n2, d = esize)$power
-    }
+  # Calculate metrics
+  n <- nrow(eff_data)
+  esize <- cohen.d(eff_data[target1], new_data[target2], na.rm = T)$estimate
+  pwr <- pwr.t.test(n = n, d = esize, type = "paired")$power
 
-    # Store metrics
-    results <- tibble(`Sample Size` = n, Power = pwr, `Effect Size` = esize)
+  # Store metrics
+  results <- data.frame(`Sample Size` = n, Power = pwr, `Effect Size` = esize)
 
-    return(results)
+  return(results)
 }
 
 #' Checking the validity of dataset
@@ -68,7 +61,7 @@ subset_fun <- function(x) {
 #' @retun a tibble including
 #'
 #' @import dplyr
-#' @importFrom magrittr %>%
+#' @import magrittr
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
 #' @importFrom purrr map
@@ -76,23 +69,22 @@ subset_fun <- function(x) {
 #'
 #' @examples
 #' library(filtR)
-#' df <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2,100)), d = c(201:400))
+#' df <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
 #' target1 <- "a"
 #' target2 <- "b"
 #' valid(target1 = target1, target2 = target2, df = df)
+valid <- function(target1, target2 = NULL, groupvar = NULL, dat) {
 
-valid <- function(target1 = target1, target2 = NULL, groupvar = NULL, df = df) {
+  # Split predictor variables
+  predictors <- subset(dat, select = -c(eval(parse(text = target1)), eval(parse(text = target2))))
 
-    # Split predictor variables
-    predictors <- df %>% select(-.data$target1, -.data$target2)
+  # Generate all possible predictor-value combinations
+  comb <- unique(expand.grid(predictors))
 
-    # Generate all possible predictor-value combinations
-    comb <- predictors %>% expand.grid() %>% unique()
+  # For every predictor-value combination subset dataframe and append as list
+  output <- apply(comb, 1, subset_fun, target1 = target1, target2 = target2, dat = dat)
 
-    # For every predictor-value combination subset dataframe and append as list
-    output <- comb %>% rowwise() %>% do(row = as_tibble(.data$.)) %>% as_tibble %>% mutate(subset = map(row, subset_fun))
 
-    # #Map over list and generate validity criteria
-    results <- output %>% unnest(subset)
-
+  # #Map over list and generate validity criteria
+  results <- output %>% unnest(subset)
 }

@@ -4,7 +4,7 @@
 \alias{valid}
 \title{Checking the validity of dataset}
 \usage{
-valid(target1 = target1, target2 = NULL, groupvar = NULL, df = df)
+valid(target1, target2 = NULL, groupvar = NULL, dat)
 }
 \arguments{
 \item{target1}{the name of the}
@@ -20,7 +20,7 @@ Checking the validity of dataset
 }
 \examples{
 library(filtR)
-df <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2,100)), d = c(201:400))
+df <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
 target1 <- "a"
 target2 <- "b"
 valid(target1 = target1, target2 = target2, df = df)

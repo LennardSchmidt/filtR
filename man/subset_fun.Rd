@@ -4,10 +4,18 @@
 \alias{subset_fun}
 \title{Subsets original dataset and calculates validity metrics}
 \usage{
-subset_fun(x)
+subset_fun(x, target1, target2, dat)
 }
 \arguments{
 \item{x}{input from wrapper}
+
+\item{t1}{the name of the}
+
+\item{t2}{bla}
+
+\item{gv}{bla}
+
+\item{df}{bla}
 }
 \value{
 a tibble with validity criteria
