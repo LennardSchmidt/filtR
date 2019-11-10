@@ -6,9 +6,9 @@ test2 <- "b"
 test3 <- "c"
 
 test_that("Within output is correct type", {
-  expect_is(valid(target1 = test1, target2 = test2, dat = data), "data.frame")
+  expect_is(valid(target1 = test1, target2 = test2, dat = data), "filtR")
 })
 
 test_that("Between output is correct type", {
-  expect_is(valid(target1 = test1, groupvar = test3, dat = data), "data.frame")
+  expect_is(valid(target1 = test1, groupvar = test3, dat = data), "filtR")
 })

@@ -6,7 +6,7 @@ Author: Lennard Lukas Schmidt
 Maintainer: Lennard Lukas Schmidt <lennardschmidt@outlook.com>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports: 

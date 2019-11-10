@@ -10,10 +10,13 @@
 #'
 #' @examples
 #' library(filtR)
-#' df <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
+#' dat <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
 #' target1 <- "a"
 #' target2 <- "b"
-#' valid(target1 = target1, target2 = target2, df = df)
+#' valid(target1 = target1, target2 = target2, dat = dat)
+#'
+#' @export
+
 valid <- function(target1, target2 = NULL, groupvar = NULL, dat) {
 
   # Split predictor variables
@@ -109,10 +112,15 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
 
 #' Subsets original dataset and calculates validity metrics
 #'
-#' @param x an filtR object
+#' @param obj an filtR object
+#' @param caption a caption for each plot
+#' @param main a title for each plot
 #'
 #' @return a plot of validity criteria
-
+#'
+#' @importFrom graphics plot
+#'
+#' @export
 
 plot.valid <- function(obj, caption = c("Effect Size vs. Filter", "Power vs. Filter"), main = "") {
   if (!inherits(obj, "filtR")) {

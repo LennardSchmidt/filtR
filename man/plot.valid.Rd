@@ -4,11 +4,15 @@
 \alias{plot.valid}
 \title{Subsets original dataset and calculates validity metrics}
 \usage{
-\method{plot}{valid}(x, caption = c("Effect Size vs. Filter",
+\method{plot}{valid}(obj, caption = c("Effect Size vs. Filter",
   "Power vs. Filter"), main = "")
 }
 \arguments{
-\item{x}{an filtR object}
+\item{obj}{an filtR object}
+
+\item{caption}{a caption for each plot}
+
+\item{main}{a title for each plot}
 }
 \value{
 a plot of validity criteria

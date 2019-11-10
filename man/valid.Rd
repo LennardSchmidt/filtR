@@ -23,8 +23,9 @@ Checking the validity of dataset
 }
 \examples{
 library(filtR)
-df <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
+dat <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
 target1 <- "a"
 target2 <- "b"
-valid(target1 = target1, target2 = target2, df = df)
+valid(target1 = target1, target2 = target2, dat = dat)
+
 }
