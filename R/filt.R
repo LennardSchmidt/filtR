@@ -91,11 +91,17 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
     n1 <- table(eff_data[, groupvar])[1]
     n2 <- table(eff_data[, groupvar])[2]
     esize <- as.numeric(effsize::cohen.d(eff_data[, target1], eff_data[, groupvar], na.rm = T)$estimate)
-    pwr <- tryCatch({pwr::pwr.t2n.test(n = n1, n2 = n2, d = esize)$power}, error = function(e){return(NA)})
+    pwr <- tryCatch(
+      {
+        pwr::pwr.t2n.test(n = n1, n2 = n2, d = esize)$power
+      },
+      error = function(e) {
+        return(NA)
+      }
+    )
 
     # Store net metrics
     results <- data.frame(`Sample Size` = (n1 + n2), Power = pwr, `Effect Size` = esize)
-
   }
 
   return(results)
@@ -108,11 +114,12 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
 #' @return a plot of validity criteria
 
 
-plot.valid <- function (obj, caption = c("Effect Size vs. Filter", "Power vs. Filter"),  main = ""){
-  if (!inherits(obj, "filtR"))
+plot.valid <- function(obj, caption = c("Effect Size vs. Filter", "Power vs. Filter"), main = "") {
+  if (!inherits(obj, "filtR")) {
     stop("use only with \"filtR\" objects")
+  }
 
-  #Drop 0/NA/ INF
+  # Drop 0/NA/ INF
 
   x <- data.frame(
     Sample.Size = obj$Sample.Size,
@@ -120,12 +127,12 @@ plot.valid <- function (obj, caption = c("Effect Size vs. Filter", "Power vs. Fi
     Effect.Size = obj$Effect.Size
   )
 
-  x <- x[order(x$Power),]
+  x <- x[order(x$Power), ]
   x$ID <- c(1:nrow(x))
 
   plot(x$ID, x$Power, xlab = "Factor Level Combinations", ylab = "Power", main = main, type = "s")
 
-  x <- abs(x[order(x$Effect.Size, decreasing = F),])
+  x <- abs(x[order(x$Effect.Size, decreasing = F), ])
   x$ID <- c(1:nrow(x))
 
   plot(x$ID, x$Effect.Size, xlab = "Factor Level Combinations", ylab = "Effect Size", main = main, type = "s")
