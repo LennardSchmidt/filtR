@@ -4,19 +4,24 @@
 \alias{valid}
 \title{Checking the validity of dataset}
 \usage{
-valid(target1, target2 = NULL, groupvar = NULL, dat)
+valid(target1, target2 = NULL, groupvar = NULL, filtervar = NULL, df,
+  plot = FALSE, smooth = FALSE)
 }
 \arguments{
 \item{target1}{the name of the}
 
-\item{target2}{bla}
+\item{target2}{a}
 
-\item{groupvar}{bla}
+\item{groupvar}{a treatment variable}
 
-\item{dat}{bla}
+\item{plot}{call plot.valid}
+
+\item{smooth}{call smooth.valid}
+
+\item{dat}{a dataset}
 }
 \value{
-a data.frame including
+a filtR object including estimations of effect size an power for each combination
 }
 \description{
 Checking the validity of dataset

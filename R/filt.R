@@ -2,27 +2,53 @@
 #' Checking the validity of dataset
 #'
 #' @param target1 the name of the
-#' @param target2 bla
-#' @param groupvar bla
-#' @param dat bla
+#' @param target2 a
+#' @param groupvar a treatment variable
+#' @param dat a dataset
+#' @param plot call plot.valid
+#' @param smooth call smooth.valid
 #'
-#' @return a data.frame including
+#' @return a filtR object including estimations of effect size an power for each combination
 #'
 #' @examples
 #' library(filtR)
 #' dat <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
 #' target1 <- "a"
 #' target2 <- "b"
-#' valid(target1 = target1, target2 = target2, dat = dat)
+#' valid(target1 = target1, target2 = target2, df = dat)
 #'
 #' @export
 
-valid <- function(target1, target2 = NULL, groupvar = NULL, dat) {
+valid <- function(target1, target2 = NULL,
+                  groupvar = NULL, filtervar = NULL,
+                  df,
+                  plot = FALSE,
+                  smooth = FALSE) {
 
-  # Split predictor variables
+  if (all(is.null(target2), is.null(groupvar))) {
+    stop("Specify one option")
+  }
+
+  if (all(!is.null(target2), !is.null(groupvar))) {
+    stop("Specify one option only")
+  }
+
+  # Split test and filter variables
   if (is.null(groupvar)) {
+    # Get relevant dataframe
+    if(is.null(filtervar)){
+      dat <- df
+    } else {
+      dat <- subset(df, select = c(target1, target2, filtervar))
+    }
     predictors <- subset(dat, select = -c(eval(parse(text = target1)), eval(parse(text = target2))))
   } else {
+    # Get relevant dataframe
+    if(is.null(filtervar)){
+      dat <- df
+    } else {
+      dat <- subset(df, select = c(target1, groupvar, filtervar))
+    }
     predictors <- subset(dat, select = -c(eval(parse(text = target1)), eval(parse(text = groupvar))))
   }
 
@@ -37,6 +63,15 @@ valid <- function(target1, target2 = NULL, groupvar = NULL, dat) {
 
   # Set class
   class(results) <- "filtR"
+
+  # Options
+  if (smooth) {
+    # smooth.valid(results)
+  }
+
+  if (plot) {
+    plot.valid(results)
+  }
 
   return(results)
 }
@@ -116,7 +151,7 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
 #' @param caption a caption for each plot
 #' @param main a title for each plot
 #'
-#' @return a plot of validity criteria
+#' @return a plot of effect size and power for all combinations
 #'
 #' @importFrom graphics plot
 #'
@@ -135,6 +170,11 @@ plot.valid <- function(obj, caption = c("Effect Size vs. Filter", "Power vs. Fil
     Effect.Size = obj$Effect.Size
   )
 
+  x <- x[order(x$Sample.Size), ]
+  x$ID <- c(1:nrow(x))
+
+  plot(x$ID, x$Sample.Size, xlab = "Factor Level Combinations", ylab = "Sample.Size", main = main, type = "s")
+
   x <- x[order(x$Power), ]
   x$ID <- c(1:nrow(x))
 
@@ -145,3 +185,6 @@ plot.valid <- function(obj, caption = c("Effect Size vs. Filter", "Power vs. Fil
 
   plot(x$ID, x$Effect.Size, xlab = "Factor Level Combinations", ylab = "Effect Size", main = main, type = "s")
 }
+
+
+#smooth.valid

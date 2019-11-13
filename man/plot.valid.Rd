@@ -15,7 +15,7 @@
 \item{main}{a title for each plot}
 }
 \value{
-a plot of validity criteria
+a plot of effect size and power for all combinations
 }
 \description{
 Subsets original dataset and calculates validity metrics
