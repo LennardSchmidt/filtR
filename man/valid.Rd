@@ -4,21 +4,23 @@
 \alias{valid}
 \title{Checking the validity of dataset}
 \usage{
-valid(effvar, efffac, filtervars = NULL, df, plot = FALSE,
-  smooth = FALSE)
+valid(effvar, efffac, filtervars = NULL, df, sample = FALSE,
+  plot = FALSE, smooth = FALSE)
 }
 \arguments{
-\item{effvar}{the column name of the}
+\item{effvar}{numeric, the column name of the}
 
-\item{efffac}{the column name}
+\item{efffac}{numeric or factor, the column name}
 
-\item{filtervars}{a vector of column names}
+\item{filtervars}{numeric or factor, vector of column names}
 
-\item{df}{a dataset}
+\item{df}{numeric or factor, a dataset}
 
-\item{plot}{call plot.valid}
+\item{sample}{boolean, if TRUE sample from observations}
 
-\item{smooth}{call smooth.valid}
+\item{plot}{boolean, if TRUE call plot.valid}
+
+\item{smooth}{boolean, if TRUE call smooth.valid}
 }
 \value{
 a filtR object including estimations of effect size an power for all possible filtervariable x value combination
@@ -30,5 +32,4 @@ Checking the validity of dataset
 library(filtR)
 data <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
 valid(effvar = "a", efffac = "b", df = data)
-
 }

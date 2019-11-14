@@ -2,7 +2,7 @@
 % Please edit documentation in R/filt.R
 \name{plot.valid}
 \alias{plot.valid}
-\title{Subsets original dataset and calculates validity metrics}
+\title{Plots validity metrics}
 \usage{
 \method{plot}{valid}(obj, caption = c("Effect Size vs. Filter",
   "Power vs. Filter"), main = "")
@@ -18,5 +18,5 @@
 a plot of effect size and power for all combinations
 }
 \description{
-Subsets original dataset and calculates validity metrics
+Plots validity metrics
 }
