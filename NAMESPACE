@@ -2,4 +2,5 @@
 
 S3method(plot,valid)
 export(valid)
+import(pbapply)
 importFrom(graphics,plot)

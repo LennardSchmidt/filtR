@@ -1,62 +1,50 @@
 
 #' Checking the validity of dataset
 #'
-#' @param target1 the name of the
-#' @param target2 a
-#' @param groupvar a treatment variable
-#' @param dat a dataset
+#' @import pbapply
+#'
+#' @param effvar the column name of the
+#' @param efffac the column name
+#' @param filtervars a vector of column names
+#' @param df a dataset
 #' @param plot call plot.valid
 #' @param smooth call smooth.valid
 #'
-#' @return a filtR object including estimations of effect size an power for each combination
+#' @return a filtR object including estimations of effect size an power for all possible filtervariable x value combination
 #'
 #' @examples
 #' library(filtR)
-#' dat <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
-#' target1 <- "a"
-#' target2 <- "b"
-#' valid(target1 = target1, target2 = target2, df = dat)
+#' data <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
+#' valid(effvar = "a", efffac = "b", df = data)
 #'
 #' @export
 
-valid <- function(target1, target2 = NULL,
-                  groupvar = NULL, filtervar = NULL,
-                  df,
+valid <- function(effvar, efffac,
+                  filtervars = NULL, df,
                   plot = FALSE,
                   smooth = FALSE) {
 
-  if (all(is.null(target2), is.null(groupvar))) {
-    stop("Specify one option")
+  if( ! any(c("numeric","integer") %in% class(df[,effvar]))){
+    stop("First parameter must be a numeric type")
   }
 
-  if (all(!is.null(target2), !is.null(groupvar))) {
-    stop("Specify one option only")
-  }
-
-  # Split test and filter variables
-  if (is.null(groupvar)) {
-    # Get relevant dataframe
-    if(is.null(filtervar)){
-      dat <- df
-    } else {
-      dat <- subset(df, select = c(target1, target2, filtervar))
-    }
-    predictors <- subset(dat, select = -c(eval(parse(text = target1)), eval(parse(text = target2))))
+  if(is.null(filtervars)){
+    filtervars <- subset(df, select = -c(eval(parse(text = effvar)), eval(parse(text = efffac))))
   } else {
-    # Get relevant dataframe
-    if(is.null(filtervar)){
-      dat <- df
-    } else {
-      dat <- subset(df, select = c(target1, groupvar, filtervar))
-    }
-    predictors <- subset(dat, select = -c(eval(parse(text = target1)), eval(parse(text = groupvar))))
+    filtervars <- subset(df, select = filtervars)
   }
 
   # Generate all possible predictor-value combinations
-  comb <- unique(expand.grid(predictors))
+  comb <- unique(expand.grid(filtervars))
 
-  # For every predictor-value combination subset dataframe and append as list
-  output <- apply(comb, 1, valid.subset_fun, target1 = target1, target2 = target2, groupvar = groupvar, dat = dat)
+  # For every filtervar x value combination subset dataframe and append as list
+  if (requireNamespace("pbapply", quietly = TRUE)) {
+    op <- pbapply::pboptions(type="timer")
+    output <- pbapply::pbapply(comb, 1, valid.subset, effvar = effvar, efffac = efffac, dat = df)
+  } else {
+    output <- apply(comb, 1, valid.subset, effvar = effvar, efffac = efffac, dat = df)
+  }
+
 
   # Map over list and generate validity criteria
   results <- do.call(rbind, output)
@@ -80,14 +68,13 @@ valid <- function(target1, target2 = NULL,
 #' Subsets original dataset and calculates validity metrics
 #'
 #' @param x input from wrapper
-#' @param target1 the name of the
-#' @param target2 bla
-#' @param groupvar bla
+#' @param effvar the name of the
+#' @param efffac bla
 #' @param dat bla
 #'
 #' @return a vector with validity criteria
 
-valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
+valid.subset <- function(x, effvar, efffac, dat) {
   names <- names(x)
 
   # Filter gross dataset
@@ -97,7 +84,7 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
     if (nrow(dat) == 0) {
       break
     } else if (is.factor(dat[, name])) {
-      dat <- subset(dat, eval(parse(text = name)) == factor(y, levels = unique(dat[, name])))
+      dat <- subset(dat, eval(parse(text = name)) == factor(y, levels = levels(dat[, name])))
     } else if (is.numeric(dat[, name])) {
       dat <- subset(dat, eval(parse(text = name)) <= as.double(y))
     } else if (is.character(dat[, name])) {
@@ -105,38 +92,39 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
     }
   }
 
-  # Within design
-  if (is.null(groupvar)) {
+  # Effect variables
+  d <- dat[,effvar]
+  f <- dat[,efffac]
 
-    # Net dataset
-    eff_data <- subset(dat, select = c(eval(parse(text = target1)), eval(parse(text = target2))))
+  if( "character" %in% class(f)){
+    f = factor(f)
+  }
+
+  # Within design
+  if (! "factor" %in% class(f) ) {
 
     # Calculate net metrics
-    n <- nrow(eff_data)
-    esize <- as.numeric(effsize::cohen.d(eff_data[, target1], eff_data[, target2], na.rm = T)$estimate)
+    n <- length(d)
+    esize <- as.numeric(effsize::cohen.d(d, f, na.rm = T)$estimate)
     pwr <- pwr::pwr.t.test(n = n, d = esize, type = "paired")$power
 
     # Store net metrics
     results <- data.frame(`Sample Size` = n, Power = pwr, `Effect Size` = esize)
 
-    # Between design
+  # Between design
   } else {
 
-    # Net dataset
-    eff_data <- subset(dat, select = c(eval(parse(text = target1)), eval(parse(text = groupvar))))
-
     # Calculate net metrics
-    n1 <- table(eff_data[, groupvar])[1]
-    n2 <- table(eff_data[, groupvar])[2]
-    esize <- as.numeric(effsize::cohen.d(eff_data[, target1], eff_data[, groupvar], na.rm = T)$estimate)
-    pwr <- tryCatch(
-      {
-        pwr::pwr.t2n.test(n = n1, n2 = n2, d = esize)$power
-      },
-      error = function(e) {
-        return(NA)
-      }
-    )
+    ns = as.numeric(table(f))
+    n1 = ns[1]
+    n2 = ns[2]
+
+    if(length(unique(n2)) != 2) {
+      return(NA)
+    }
+
+    esize <- as.numeric(effsize::cohen.d(d, f, na.rm = T)$estimate)
+    pwr <- pwr::pwr.t2n.test(n = n1, n2 = n2, d = esize)$power
 
     # Store net metrics
     results <- data.frame(`Sample Size` = (n1 + n2), Power = pwr, `Effect Size` = esize)
@@ -158,7 +146,8 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
 #' @export
 
 plot.valid <- function(obj, caption = c("Effect Size vs. Filter", "Power vs. Filter"), main = "") {
-  if (!inherits(obj, "filtR")) {
+
+    if (!inherits(obj, "filtR")) {
     stop("use only with \"filtR\" objects")
   }
 

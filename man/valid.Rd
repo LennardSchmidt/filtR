@@ -4,33 +4,31 @@
 \alias{valid}
 \title{Checking the validity of dataset}
 \usage{
-valid(target1, target2 = NULL, groupvar = NULL, filtervar = NULL, df,
-  plot = FALSE, smooth = FALSE)
+valid(effvar, efffac, filtervars = NULL, df, plot = FALSE,
+  smooth = FALSE)
 }
 \arguments{
-\item{target1}{the name of the}
+\item{effvar}{the column name of the}
 
-\item{target2}{a}
+\item{efffac}{the column name}
 
-\item{groupvar}{a treatment variable}
+\item{filtervars}{a vector of column names}
+
+\item{df}{a dataset}
 
 \item{plot}{call plot.valid}
 
 \item{smooth}{call smooth.valid}
-
-\item{dat}{a dataset}
 }
 \value{
-a filtR object including estimations of effect size an power for each combination
+a filtR object including estimations of effect size an power for all possible filtervariable x value combination
 }
 \description{
 Checking the validity of dataset
 }
 \examples{
 library(filtR)
-dat <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
-target1 <- "a"
-target2 <- "b"
-valid(target1 = target1, target2 = target2, dat = dat)
+data <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
+valid(effvar = "a", efffac = "b", df = data)
 
 }
