@@ -10,9 +10,9 @@ test4 <- c("d", "e", "f")
 #   expect_error(valid(effvar = test1, effac = test2, df = data), "Specify one option only")
 # })
 
-test_that("No option specified", {
-  expect_error(valid(effvar = test1, df = data), "Specify one option")
-})
+# test_that("No option specified", {
+#   expect_error(valid(effvar = test1, df = data), "Specify one option")
+# })
 
 test_that("Wrong object type in plot", {
   expect_error(plot.valid(data), "use only with \"filtR\" objects")

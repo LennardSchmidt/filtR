@@ -159,9 +159,10 @@ valid.subset <- function(x, effvar, efffac, dat) {
 
 #' Plots validity metrics
 #'
-#' @param obj an filtR object
+#' @param x an filtR object
 #' @param caption a caption for each plot
 #' @param main a title for each plot
+#' @param ... Arguments to be passed to methods
 #'
 #' @return a plot of effect size and power for all combinations
 #'
@@ -169,17 +170,17 @@ valid.subset <- function(x, effvar, efffac, dat) {
 #'
 #' @export
 
-plot.valid <- function(obj, caption = c("Effect Size vs. Filter", "Power vs. Filter"), main = "") {
-  if (!inherits(obj, "filtR")) {
+plot.valid <- function(x, caption = c("Effect Size vs. Filter", "Power vs. Filter"), main = "", ...) {
+  if (!inherits(x, "filtR")) {
     stop("use only with \"filtR\" objects")
   }
 
   # Drop 0/NA/ INF
 
   x <- data.frame(
-    Sample.Size = obj$Sample.Size,
-    Power = obj$Power,
-    Effect.Size = obj$Effect.Size
+    Sample.Size = x$Sample.Size,
+    Power = x$Power,
+    Effect.Size = x$Effect.Size
   )
 
   x <- x[order(x$Sample.Size), ]
