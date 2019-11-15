@@ -4,33 +4,32 @@
 \alias{valid}
 \title{Checking the validity of dataset}
 \usage{
-valid(target1, target2 = NULL, groupvar = NULL, filtervar = NULL, df,
+valid(effvar, efffac, filtervars = NULL, df, sample = FALSE,
   plot = FALSE, smooth = FALSE)
 }
 \arguments{
-\item{target1}{the name of the}
+\item{effvar}{numeric, the column name of the}
 
-\item{target2}{a}
+\item{efffac}{numeric or factor, the column name}
 
-\item{groupvar}{a treatment variable}
+\item{filtervars}{numeric or factor, vector of column names}
 
-\item{plot}{call plot.valid}
+\item{df}{numeric or factor, a dataset}
 
-\item{smooth}{call smooth.valid}
+\item{sample}{boolean, if TRUE sample from observations}
 
-\item{dat}{a dataset}
+\item{plot}{boolean, if TRUE call plot.valid}
+
+\item{smooth}{boolean, if TRUE call smooth.valid}
 }
 \value{
-a filtR object including estimations of effect size an power for each combination
+a filtR object including estimations of effect size an power for all possible filtervariable x value combination
 }
 \description{
 Checking the validity of dataset
 }
 \examples{
 library(filtR)
-dat <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
-target1 <- "a"
-target2 <- "b"
-valid(target1 = target1, target2 = target2, dat = dat)
-
+data <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
+valid(effvar = "a", efffac = "b", df = data)
 }

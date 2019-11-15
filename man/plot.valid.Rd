@@ -2,21 +2,23 @@
 % Please edit documentation in R/filt.R
 \name{plot.valid}
 \alias{plot.valid}
-\title{Subsets original dataset and calculates validity metrics}
+\title{Plots validity metrics}
 \usage{
-\method{plot}{valid}(obj, caption = c("Effect Size vs. Filter",
-  "Power vs. Filter"), main = "")
+\method{plot}{valid}(x, caption = c("Effect Size vs. Filter",
+  "Power vs. Filter"), main = "", ...)
 }
 \arguments{
-\item{obj}{an filtR object}
+\item{x}{an filtR object}
 
 \item{caption}{a caption for each plot}
 
 \item{main}{a title for each plot}
+
+\item{...}{Arguments to be passed to methods}
 }
 \value{
 a plot of effect size and power for all combinations
 }
 \description{
-Subsets original dataset and calculates validity metrics
+Plots validity metrics
 }

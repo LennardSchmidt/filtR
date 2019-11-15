@@ -1,70 +1,65 @@
 
 #' Checking the validity of dataset
 #'
-#' @param target1 the name of the
-#' @param target2 a
-#' @param groupvar a treatment variable
-#' @param dat a dataset
-#' @param plot call plot.valid
-#' @param smooth call smooth.valid
+#' @import pbapply
 #'
-#' @return a filtR object including estimations of effect size an power for each combination
+#' @param effvar numeric, the column name of the
+#' @param efffac numeric or factor, the column name
+#' @param filtervars numeric or factor, vector of column names
+#' @param df numeric or factor, a dataset
+#' @param sample boolean, if TRUE sample from observations
+#' @param plot boolean, if TRUE call plot.valid
+#' @param smooth boolean, if TRUE call smooth.valid
+#'
+#' @return a filtR object including estimations of effect size an power for all possible filtervariable x value combination
 #'
 #' @examples
 #' library(filtR)
-#' dat <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
-#' target1 <- "a"
-#' target2 <- "b"
-#' valid(target1 = target1, target2 = target2, df = dat)
-#'
+#' data <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
+#' valid(effvar = "a", efffac = "b", df = data)
 #' @export
 
-valid <- function(target1, target2 = NULL,
-                  groupvar = NULL, filtervar = NULL,
-                  df,
+valid <- function(effvar, efffac,
+                  filtervars = NULL, df,
+                  sample = FALSE,
                   plot = FALSE,
                   smooth = FALSE) {
-
-  if (all(is.null(target2), is.null(groupvar))) {
-    stop("Specify one option")
+  if (!any(c("numeric", "integer") %in% class(df[, effvar]))) {
+    stop("First parameter must be a numeric type")
   }
 
-  if (all(!is.null(target2), !is.null(groupvar))) {
-    stop("Specify one option only")
-  }
-
-  # Split test and filter variables
-  if (is.null(groupvar)) {
-    # Get relevant dataframe
-    if(is.null(filtervar)){
-      dat <- df
-    } else {
-      dat <- subset(df, select = c(target1, target2, filtervar))
-    }
-    predictors <- subset(dat, select = -c(eval(parse(text = target1)), eval(parse(text = target2))))
+  if (is.null(filtervars)) {
+    filtervars <- subset(df, select = -c(eval(parse(text = effvar)), eval(parse(text = efffac))))
   } else {
-    # Get relevant dataframe
-    if(is.null(filtervar)){
-      dat <- df
-    } else {
-      dat <- subset(df, select = c(target1, groupvar, filtervar))
-    }
-    predictors <- subset(dat, select = -c(eval(parse(text = target1)), eval(parse(text = groupvar))))
+    filtervars <- subset(df, select = filtervars)
   }
+
+  # Sample observations for memory performance
+  if(sample == TRUE){
+    filtervars <- filtervars[sample(1:nrow(filtervars), round(nrow(filtervars)*0.25)),] # Check threshold
+  }
+
+  #Add "no-filter" case for each variable
+  filtervars <- rbind(filtervars, c(rep(NA, ncol(filtervars))))
 
   # Generate all possible predictor-value combinations
-  comb <- unique(expand.grid(predictors))
+  comb <- unique(expand.grid(filtervars)) # Random sampling b/c of memory limit [add before NA_action]?
 
-  # For every predictor-value combination subset dataframe and append as list
-  output <- apply(comb, 1, valid.subset_fun, target1 = target1, target2 = target2, groupvar = groupvar, dat = dat)
+  # Compute validity metrics for every combination
+  if (requireNamespace("pbapply", quietly = TRUE)) {
+    op <- pbapply::pboptions(type = "timer")
+    output <- pbapply::pbapply(comb, 1, valid.subset, effvar = effvar, efffac = efffac, dat = df)
+  } else {
+    output <- apply(comb, 1, valid.subset, effvar = effvar, efffac = efffac, dat = df)
+  }
 
-  # Map over list and generate validity criteria
+  # Create results datafrane
   results <- do.call(rbind, output)
 
   # Set class
   class(results) <- "filtR"
 
-  # Options
+  # Set options
   if (smooth) {
     # smooth.valid(results)
   }
@@ -80,40 +75,55 @@ valid <- function(target1, target2 = NULL,
 #' Subsets original dataset and calculates validity metrics
 #'
 #' @param x input from wrapper
-#' @param target1 the name of the
-#' @param target2 bla
-#' @param groupvar bla
+#' @param effvar the name of the
+#' @param efffac bla
 #' @param dat bla
 #'
 #' @return a vector with validity criteria
 
-valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
+valid.subset <- function(x, effvar, efffac, dat) {
   names <- names(x)
 
   # Filter gross dataset
   for (name in names) {
     y <- x[name]
 
+    if (is.na(y)) {
+      next
+    }
+
     if (nrow(dat) == 0) {
-      break
-    } else if (is.factor(dat[, name])) {
-      dat <- subset(dat, eval(parse(text = name)) == factor(y, levels = unique(dat[, name])))
-    } else if (is.numeric(dat[, name])) {
-      dat <- subset(dat, eval(parse(text = name)) <= as.double(y))
-    } else if (is.character(dat[, name])) {
-      dat <- subset(dat, eval(parse(text = name)) == y)
+      return(data.frame(`Sample Size` = 0, Power = NA, `Effect Size` = NA))
+    }
+
+    if (is.factor(dat[, name])) {
+      dat <- subset(dat, eval(parse(text = name)) == factor(y, levels = levels(dat[, name])))
+    }
+
+    if (is.numeric(dat[, name])) {
+      dat <- subset(dat, eval(parse(text = name)) < as.double(y))
     }
   }
 
-  # Within design
-  if (is.null(groupvar)) {
+  # Effect variables
+  d <- dat[, effvar]
+  f <- dat[, efffac]
 
-    # Net dataset
-    eff_data <- subset(dat, select = c(eval(parse(text = target1)), eval(parse(text = target2))))
+  if ("character" %in% class(f)) {
+    f <- factor(f)
+  }
+
+  # Within design
+  if (!"factor" %in% class(f)) {
 
     # Calculate net metrics
-    n <- nrow(eff_data)
-    esize <- as.numeric(effsize::cohen.d(eff_data[, target1], eff_data[, target2], na.rm = T)$estimate)
+    n <- length(d)
+
+    if ( n < 2) {
+      return(data.frame(`Sample Size` = n, Power = NA, `Effect Size` = NA))
+    }
+
+    esize <- as.numeric(effsize::cohen.d(d, f, na.rm = T)$estimate)
     pwr <- pwr::pwr.t.test(n = n, d = esize, type = "paired")$power
 
     # Store net metrics
@@ -122,21 +132,18 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
     # Between design
   } else {
 
-    # Net dataset
-    eff_data <- subset(dat, select = c(eval(parse(text = target1)), eval(parse(text = groupvar))))
-
     # Calculate net metrics
-    n1 <- table(eff_data[, groupvar])[1]
-    n2 <- table(eff_data[, groupvar])[2]
-    esize <- as.numeric(effsize::cohen.d(eff_data[, target1], eff_data[, groupvar], na.rm = T)$estimate)
-    pwr <- tryCatch(
-      {
-        pwr::pwr.t2n.test(n = n1, n2 = n2, d = esize)$power
-      },
-      error = function(e) {
-        return(NA)
-      }
-    )
+    ns <- as.numeric(table(f))
+    n1 <- ns[1]
+    n2 <- ns[2]
+
+    if (length(unique(f)) != 2 | any(n1 < 2, n2 < 2)) {
+      return(data.frame(`Sample Size` = (n1+n2), Power = NA, `Effect Size` = NA))
+    }
+
+    # Effect size and power
+    esize <- as.numeric(effsize::cohen.d(d, f, na.rm = T)$estimate)
+    pwr <- pwr::pwr.t2n.test(n = n1, n2 = n2, d = esize)$power
 
     # Store net metrics
     results <- data.frame(`Sample Size` = (n1 + n2), Power = pwr, `Effect Size` = esize)
@@ -145,11 +152,17 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
   return(results)
 }
 
-#' Subsets original dataset and calculates validity metrics
+# Thu Nov 14 13:04:18 2019 ------------------------------
+
+# WIP
+# valid.point <- function()
+
+#' Plots validity metrics
 #'
-#' @param obj an filtR object
+#' @param x an filtR object
 #' @param caption a caption for each plot
 #' @param main a title for each plot
+#' @param ... Arguments to be passed to methods
 #'
 #' @return a plot of effect size and power for all combinations
 #'
@@ -157,34 +170,36 @@ valid.subset_fun <- function(x, target1, target2 = NULL, groupvar = NULL, dat) {
 #'
 #' @export
 
-plot.valid <- function(obj, caption = c("Effect Size vs. Filter", "Power vs. Filter"), main = "") {
-  if (!inherits(obj, "filtR")) {
+plot.valid <- function(x, caption = c("Effect Size vs. Filter", "Power vs. Filter"), main = "", ...) {
+  if (!inherits(x, "filtR")) {
     stop("use only with \"filtR\" objects")
   }
 
   # Drop 0/NA/ INF
 
   x <- data.frame(
-    Sample.Size = obj$Sample.Size,
-    Power = obj$Power,
-    Effect.Size = obj$Effect.Size
+    Sample.Size = x$Sample.Size,
+    Power = x$Power,
+    Effect.Size = x$Effect.Size
   )
 
   x <- x[order(x$Sample.Size), ]
   x$ID <- c(1:nrow(x))
 
-  plot(x$ID, x$Sample.Size, xlab = "Factor Level Combinations", ylab = "Sample.Size", main = main, type = "s")
+  plot(x$ID, x$Sample.Size, xlab = "Combination", ylab = "Sample.Size", main = main, type = "s")
 
-  x <- x[order(x$Power), ]
-  x$ID <- c(1:nrow(x))
+  # x <- x[order(x$Power), ]
+  # x$ID <- c(1:nrow(x))
 
-  plot(x$ID, x$Power, xlab = "Factor Level Combinations", ylab = "Power", main = main, type = "s")
+  plot(x$ID, x$Power, xlab = "Combination", ylab = "Power", main = main, type = "s")
 
-  x <- abs(x[order(x$Effect.Size, decreasing = F), ])
-  x$ID <- c(1:nrow(x))
+  # x <- abs(x[order(x$Effect.Size, decreasing = F), ])
+  # x$ID <- c(1:nrow(x))
 
-  plot(x$ID, x$Effect.Size, xlab = "Factor Level Combinations", ylab = "Effect Size", main = main, type = "s")
+  plot(x$ID, x$Effect.Size, xlab = "Combination", ylab = "Effect Size", main = main, type = "s")
 }
 
+# Thu Nov 14 13:04:27 2019 ------------------------------
 
-#smooth.valid
+# WIP
+# smooth.valid <- function()
