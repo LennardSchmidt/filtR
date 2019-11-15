@@ -24,33 +24,29 @@ valid <- function(effvar, efffac,
                   sample = FALSE,
                   plot = FALSE,
                   smooth = FALSE) {
+
   if (!any(c("numeric", "integer") %in% class(df[, effvar]))) {
     stop("First parameter must be a numeric type")
   }
 
-  if (is.null(filtervars)) {
-    filtervars <- subset(df, select = -c(eval(parse(text = effvar)), eval(parse(text = efffac))))
-  } else {
-    filtervars <- subset(df, select = filtervars)
-  }
-
-  # Sample observations for memory performance
-  if(sample == TRUE){
-    filtervars <- filtervars[sample(1:nrow(filtervars), round(nrow(filtervars)*0.25)),] # Check threshold
-  }
-
-  #Add "no-filter" case for each variable
-  filtervars <- rbind(filtervars, c(rep(NA, ncol(filtervars))))
-
-  # Generate all possible predictor-value combinations
-  comb <- unique(expand.grid(filtervars)) # Random sampling b/c of memory limit [add before NA_action]?
+  comb <- valid_get_comb(effvar = effvar,
+                         efffac = efffac,
+                         filtervars = filtervars,
+                         df = df,
+                         sample = sample)
 
   # Compute validity metrics for every combination
   if (requireNamespace("pbapply", quietly = TRUE)) {
     op <- pbapply::pboptions(type = "timer")
-    output <- pbapply::pbapply(comb, 1, valid.subset, effvar = effvar, efffac = efffac, dat = df)
+    output <- pbapply::pbapply(comb, 1, valid_subset,
+                               effvar = effvar,
+                               efffac = efffac,
+                               dat = df)
   } else {
-    output <- apply(comb, 1, valid.subset, effvar = effvar, efffac = efffac, dat = df)
+    output <- apply(comb, 1, valid_subset,
+                    effvar = effvar,
+                    efffac = efffac,
+                    dat = df)
   }
 
   # Create results datafrane
@@ -71,17 +67,43 @@ valid <- function(effvar, efffac,
   return(results)
 }
 
+#' Get all possible filter combinations
+#'
+#' @inheritParams valid
+#'
+#' @return a df with all combinations
+
+valid_get_comb <- function(effvar, efffac, filtervars, df, sample) {
+
+  if (is.null(filtervars)) {
+    filtervars <- subset(df, select = -c(eval(parse(text = effvar)),
+                                         eval(parse(text = efffac))))
+  } else {
+    filtervars <- subset(df, select = filtervars)
+  }
+
+  # Sample observations for memory performance
+  if (sample == TRUE) {
+    filtervars <- filtervars[sample(1:nrow(filtervars), round(nrow(filtervars) * 0.25)), ] # Check threshold
+  }
+
+  #Add "no-filter" case for each variable
+  filtervars <- rbind(filtervars, c(rep(NA, ncol(filtervars))))
+
+  # Generate all possible predictor-value combinations
+  comb <- unique(expand.grid(filtervars))
+
+  return(comb)
+}
+
 
 #' Subsets original dataset and calculates validity metrics
 #'
-#' @param x input from wrapper
-#' @param effvar the name of the
-#' @param efffac bla
-#' @param dat bla
+#' @inheritParams valid
 #'
 #' @return a vector with validity criteria
 
-valid.subset <- function(x, effvar, efffac, dat) {
+valid_subset <- function(x, effvar, efffac, dat) {
   names <- names(x)
 
   # Filter gross dataset
@@ -119,7 +141,7 @@ valid.subset <- function(x, effvar, efffac, dat) {
     # Calculate net metrics
     n <- length(d)
 
-    if ( n < 2) {
+    if (n < 2) {
       return(data.frame(`Sample Size` = n, Power = NA, `Effect Size` = NA))
     }
 
@@ -138,7 +160,7 @@ valid.subset <- function(x, effvar, efffac, dat) {
     n2 <- ns[2]
 
     if (length(unique(f)) != 2 | any(n1 < 2, n2 < 2)) {
-      return(data.frame(`Sample Size` = (n1+n2), Power = NA, `Effect Size` = NA))
+      return(data.frame(`Sample Size` = (n1 + n2), Power = NA, `Effect Size` = NA))
     }
 
     # Effect size and power
@@ -153,9 +175,6 @@ valid.subset <- function(x, effvar, efffac, dat) {
 }
 
 # Thu Nov 14 13:04:18 2019 ------------------------------
-
-# WIP
-# valid.point <- function()
 
 #' Plots validity metrics
 #'
