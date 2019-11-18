@@ -19,11 +19,13 @@
 #' valid(effvar = "a", efffac = "b", df = data)
 #' @export
 
-valid <- function(effvar, efffac,
-                  filtervars = NULL, df,
+valid <- function(effvar,
+                  efffac,
+                  filtervars = NULL,
+                  df,
                   sample = FALSE,
                   plot = FALSE,
-                  smooth = FALSE) {
+                  smooth = FALSE) { # add direction?
 
   if (!any(c("numeric", "integer") %in% class(df[, effvar]))) {
     stop("First parameter must be a numeric type")
@@ -50,7 +52,8 @@ valid <- function(effvar, efffac,
   }
 
   # Create results datafrane
-  results <- do.call(rbind, output)
+  results <- do.call(rbind,
+                     output)
 
   # Set class
   class(results) <- "filtR"
@@ -73,22 +76,30 @@ valid <- function(effvar, efffac,
 #'
 #' @return a df with all combinations
 
-valid_get_comb <- function(effvar, efffac, filtervars, df, sample) {
+valid_get_comb <- function(effvar,
+                           efffac,
+                           filtervars,
+                           df,
+                           sample) {
 
   if (is.null(filtervars)) {
-    filtervars <- subset(df, select = -c(eval(parse(text = effvar)),
+    filtervars <- subset(df,
+                         select = -c(eval(parse(text = effvar)),
                                          eval(parse(text = efffac))))
   } else {
-    filtervars <- subset(df, select = filtervars)
+    filtervars <- subset(df,
+                         select = filtervars)
   }
 
   # Sample observations for memory performance
   if (sample == TRUE) {
-    filtervars <- filtervars[sample(1:nrow(filtervars), round(nrow(filtervars) * 0.25)), ] # Check threshold
+    filtervars <- filtervars[sample(1:nrow(filtervars),
+                                    round(nrow(filtervars) * 0.25)), ] # Check threshold -> bootstrap
   }
 
   #Add "no-filter" case for each variable
-  filtervars <- rbind(filtervars, c(rep(NA, ncol(filtervars))))
+  filtervars <- rbind(filtervars,
+                      c(rep(NA, ncol(filtervars))))
 
   # Generate all possible predictor-value combinations
   comb <- unique(expand.grid(filtervars))
@@ -103,9 +114,12 @@ valid_get_comb <- function(effvar, efffac, filtervars, df, sample) {
 #'
 #' @return a vector with validity criteria
 
-valid_subset <- function(x, effvar, efffac, dat) {
-  names <- names(x)
+valid_subset <- function(x,
+                         effvar,
+                         efffac,
+                         dat) {
 
+  names <- names(x)
   # Filter gross dataset
   for (name in names) {
     y <- x[name]
@@ -115,15 +129,20 @@ valid_subset <- function(x, effvar, efffac, dat) {
     }
 
     if (nrow(dat) == 0) {
-      return(data.frame(`Sample Size` = 0, Power = NA, `Effect Size` = NA))
+      return(data.frame(`Sample Size` = 0,
+                        Power = NA,
+                        `Effect Size` = NA))
     }
 
     if (is.factor(dat[, name])) {
-      dat <- subset(dat, eval(parse(text = name)) == factor(y, levels = levels(dat[, name])))
+      dat <- subset(dat,
+                    eval(parse(text = name)) == factor(y,
+                                                       levels = levels(dat[, name])))
     }
 
     if (is.numeric(dat[, name])) {
-      dat <- subset(dat, eval(parse(text = name)) < as.double(y))
+      dat <- subset(dat,
+                    eval(parse(text = name)) < as.double(y))
     }
   }
 
@@ -142,14 +161,22 @@ valid_subset <- function(x, effvar, efffac, dat) {
     n <- length(d)
 
     if (n < 2) {
-      return(data.frame(`Sample Size` = n, Power = NA, `Effect Size` = NA))
+      return(data.frame(`Sample Size` = n,
+                        Power = NA,
+                        `Effect Size` = NA))
     }
 
-    esize <- as.numeric(effsize::cohen.d(d, f, na.rm = T)$estimate)
-    pwr <- pwr::pwr.t.test(n = n, d = esize, type = "paired")$power
+    esize <- as.numeric(effsize::cohen.d(d,
+                                         f,
+                                         na.rm = T)$estimate) # generalize for multiple models using reformulate and aov?
+    pwr <- pwr::pwr.t.test(n = n,
+                           d = esize,
+                           type = "paired")$power
 
     # Store net metrics
-    results <- data.frame(`Sample Size` = n, Power = pwr, `Effect Size` = esize)
+    results <- data.frame(`Sample Size` = n,
+                          Power = pwr,
+                          `Effect Size` = esize)
 
     # Between design
   } else {
@@ -160,15 +187,23 @@ valid_subset <- function(x, effvar, efffac, dat) {
     n2 <- ns[2]
 
     if (length(unique(f)) != 2 | any(n1 < 2, n2 < 2)) {
-      return(data.frame(`Sample Size` = (n1 + n2), Power = NA, `Effect Size` = NA))
+      return(data.frame(`Sample Size` = (n1 + n2),
+                        Power = NA,
+                        `Effect Size` = NA))
     }
 
     # Effect size and power
-    esize <- as.numeric(effsize::cohen.d(d, f, na.rm = T)$estimate)
-    pwr <- pwr::pwr.t2n.test(n = n1, n2 = n2, d = esize)$power
+    esize <- as.numeric(effsize::cohen.d(d,
+                                         f,
+                                         na.rm = T)$estimate)
+    pwr <- pwr::pwr.t2n.test(n = n1,
+                             n2 = n2,
+                             d = esize)$power
 
     # Store net metrics
-    results <- data.frame(`Sample Size` = (n1 + n2), Power = pwr, `Effect Size` = esize)
+    results <- data.frame(`Sample Size` = (n1 + n2),
+                          Power = pwr,
+                          `Effect Size` = esize)
   }
 
   return(results)
@@ -189,7 +224,10 @@ valid_subset <- function(x, effvar, efffac, dat) {
 #'
 #' @export
 
-plot.valid <- function(x, caption = c("Effect Size vs. Filter", "Power vs. Filter"), main = "", ...) {
+plot.valid <- function(x,
+                       caption = c("Effect Size vs. Filter", "Power vs. Filter"),
+                       main = "",
+                       ...) {
   if (!inherits(x, "filtR")) {
     stop("use only with \"filtR\" objects")
   }
@@ -205,17 +243,32 @@ plot.valid <- function(x, caption = c("Effect Size vs. Filter", "Power vs. Filte
   x <- x[order(x$Sample.Size), ]
   x$ID <- c(1:nrow(x))
 
-  plot(x$ID, x$Sample.Size, xlab = "Combination", ylab = "Sample.Size", main = main, type = "s")
+  plot(x$ID,
+       x$Sample.Size,
+       xlab = "Combination",
+       ylab = "Sample.Size",
+       main = main,
+       type = "s")
 
   # x <- x[order(x$Power), ]
   # x$ID <- c(1:nrow(x))
 
-  plot(x$ID, x$Power, xlab = "Combination", ylab = "Power", main = main, type = "s")
+  plot(x$ID,
+       x$Power,
+       xlab = "Combination",
+       ylab = "Power",
+       main = main,
+       type = "s")
 
   # x <- abs(x[order(x$Effect.Size, decreasing = F), ])
   # x$ID <- c(1:nrow(x))
 
-  plot(x$ID, x$Effect.Size, xlab = "Combination", ylab = "Effect Size", main = main, type = "s")
+  plot(x$ID,
+       x$Effect.Size,
+       xlab = "Combination",
+       ylab = "Effect Size",
+       main = main,
+       type = "s")
 }
 
 # Thu Nov 14 13:04:27 2019 ------------------------------

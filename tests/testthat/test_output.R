@@ -1,18 +1,36 @@
 context("output")
 
-data <- data.frame(a = c(1:50), b = c(2:51), c = factor(sample(rep(1:2, 25))), d = c(2:51), e = factor(rep(3:4, 25)))
+#-------------------------
 
-test_that("Output valid function", {
-  expect_equal(c(mean(valid(effvar = "a", efffac = "b", df = data)$Sample.Size, na.rm = T),
-                 mean(valid(effvar = "a", efffac = "b", df = data)$Power, na.rm = T),
-                 mean(valid(effvar = "a", efffac = "b", df = data)$Effect.Size, na.rm = T)),
-                 c(11.11111, 0.0729891, -0.1937876))
+library(haven)
+data <- data.frame(read_sav("C:/Users/LENNARD.SCHMIDT/Desktop/filtR/data/data-for_-unbounded-indirect-reciprocity_is-reputation-based-cooperation-bounded-by-group-membership_/Study1.sav"))
+data$IdentificationMANIPULATION <- as.factor(data$IdentificationMANIPULATION)
+data$gender <- as.factor(data$gender)
+data1 <- data[,c("AllocOut", "AllocStr", "age", "gender")]
+data2 <- data[,c("IdentificationMANIPULATION", "Coop", "age", "gender")]
+
+#-------------------------
+
+test_that("Output valid function (Within)", {
+  expect_equal(c(mean(valid(effvar = "AllocOut", efffac = "AllocStr", df = data1)$Sample.Size, na.rm = T),
+                 mean(valid(effvar = "AllocOut", efffac = "AllocStr", df = data1)$Power, na.rm = T),
+                 mean(valid(effvar = "AllocOut", efffac = "AllocStr", df = data1)$Effect.Size, na.rm = T)),
+               c(226.27777778, 0.05878874, -0.02189552))
+})
+
+test_that("Output valid function (Between)", {
+  expect_equal(c(mean(valid(effvar = "Coop", efffac = "IdentificationMANIPULATION", df = data2)$Sample.Size, na.rm = T),
+                 mean(valid(effvar = "Coop", efffac = "IdentificationMANIPULATION", df = data2)$Power, na.rm = T),
+                 mean(valid(effvar = "Coop", efffac = "IdentificationMANIPULATION", df = data2)$Effect.Size, na.rm = T)),
+               c(226.27777778, 0.9866392, 1.8370969))
 })
 
 test_that("Output point function (config I)", {
-  expect_equal(get_point(effvar = "a", efffac = "b", exp = c("d==50", "e == 4"), df = data), c(24, 0.06273423, -0.07071068))
+  expect_equal(get_point(effvar = "Coop", efffac = "IdentificationMANIPULATION", exp = c("age == 50", "gender == 1"), df = data2),
+               c(342, 0.05190539, -0.01401989))
 })
 
-test_that("Output point function (config II", {
-  expect_equal(get_point(effvar = "a", efffac = "b", exp = c("d==13", "e == 3"), df = data), c(6, 0.08385908, -0.26726124))
+test_that("Output point function (config II, no whitespace)", {
+  expect_equal(get_point(effvar = "Coop", efffac = "IdentificationMANIPULATION", exp = c("age==20", "gender== 2"), df = data2),
+               c(4, 0.05789685, -0.41379336))
 })

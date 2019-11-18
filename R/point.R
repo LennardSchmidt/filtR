@@ -13,7 +13,10 @@
 #'
 #' @export
 
-get_point <- function(effvar, efffac, exp, df) {
+get_point <- function(effvar,
+                      efffac,
+                      exp,
+                      df) {
 
   var <- list()
   operator <- list()
@@ -23,9 +26,15 @@ get_point <- function(effvar, efffac, exp, df) {
   for (e in exp) {
 
     d <- gregexpr("[<>=!]=?", e)
-    var[[i]] <- trimws(substr(e, 1, (eval(d[[1]]) - 1)))
-    operator[[i]] <- substr(e, d[[1]], d[[1]][1] + attr(d[[1]], "match.length") - 1)
-    value[[i]] <- trimws(substr(e, d[[1]][1] + attr(d[[1]], "match.length"), nchar(e)))
+    var[[i]] <- trimws(substr(e,
+                              1,
+                              (eval(d[[1]]) - 1)))
+    operator[[i]] <- substr(e,
+                            d[[1]],
+                            d[[1]][1] + attr(d[[1]], "match.length") - 1)
+    value[[i]] <- trimws(substr(e,
+                                d[[1]][1] + attr(d[[1]], "match.length"),
+                                nchar(e)))
     i <- i + 1
 
   }
@@ -50,6 +59,10 @@ get_point <- function(effvar, efffac, exp, df) {
 
   id <- which(eval(parse(text = f)))
 
+  if(length(id) == 0){
+    stop("Filter combination does not exist in data")
+  }
+
   results <- valid(effvar = effvar,
                    efffac = efffac,
                    filtervars = filtervars,
@@ -62,3 +75,5 @@ get_point <- function(effvar, efffac, exp, df) {
   return(results_point)
 
 }
+
+# get_point.bootstrap <- function()

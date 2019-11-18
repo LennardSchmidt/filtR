@@ -1,12 +1,19 @@
 context("errors")
+#-------------------------
 
-data <- data.frame(a = c(1:50), b = c(2:51), c = factor(rep(1:2, 25)), d = c(2:51), e = rep("1"), f = c(52:101))
-test1 <- "a"
-test2 <- "b"
-test3 <- "c"
-test4 <- c("d", "e", "f")
+library(haven)
+data <- data.frame(read_sav("C:/Users/LENNARD.SCHMIDT/Desktop/filtR/data/data-for_-unbounded-indirect-reciprocity_is-reputation-based-cooperation-bounded-by-group-membership_/Study1.sav"))
+data$IdentificationMANIPULATION <- as.factor(data$IdentificationMANIPULATION)
+data$gender <- as.factor(data$gender)
+data1 <- data[,c("AllocOut", "AllocStr", "age", "gender")]
+data2 <- data[,c("IdentificationMANIPULATION", "Coop", "age", "gender")]
 
+#-------------------------
 
-test_that("Wrong object type in plot", {
+test_that("Wrong exp in point function", {
+  expect_error(get_point(effvar = "Coop", efffac = "IdentificationMANIPULATION", exp = c("age==10", "gender== 2"), df = data2), "Filter combination does not exist in data")
+})
+
+test_that("Wrong object type in plot function", {
   expect_error(plot.valid(data), "use only with \"filtR\" objects")
 })
