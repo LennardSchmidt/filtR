@@ -1,3 +1,13 @@
+# Wed Nov 20 19:22:08 2019 ------------------------------
+# TODO
+# Einflussstärke einer Filtervariable
+# Gewählte Filterkombination auf der Kurve als Sensitivität
+# # Sensitivität auf der Kurve nach Effect Size
+# # Sensitivität auf der Kurve nach Sample Size
+# # Sensitivität auf der Kurve nach ähnlichstem Filter (i.e., zu Grunde liegende Variablen und Werte)
+# P Value plot : CI DONE
+# Plots übereinander (ES vs. PV) : CI DONE
+# Shiny App
 
 #' Checking the validity of dataset
 #'
@@ -16,36 +26,40 @@
 #' @examples
 #' library(filtR)
 #' data <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
-#' valid(effvar = "a", efffac = "b", df = data)
+#' get_filter(effvar = "a", efffac = "b", df = data)
 #' @export
 
-valid <- function(effvar,
-                  efffac,
-                  filtervars = NULL,
-                  df,
-                  sample = FALSE,
-                  plot = FALSE,
-                  smooth = FALSE) { # add direction?
+get_filter <- function(effvar,
+                       efffac,
+                       filtervars = NULL,
+                       df,
+                       sample = FALSE,
+                       plot = FALSE,
+                       smooth = FALSE) { # add direction?
 
   if (!any(c("numeric", "integer") %in% class(df[, effvar]))) {
     stop("First parameter must be a numeric type")
   }
 
-  comb <- valid_get_comb(effvar = effvar,
-                         efffac = efffac,
-                         filtervars = filtervars,
-                         df = df,
-                         sample = sample)
+  comb <- get_comb(effvar = effvar,
+                   efffac = efffac,
+                   filtervars = filtervars,
+                   df = df,
+                   sample = sample)
 
   # Compute validity metrics for every combination
   if (requireNamespace("pbapply", quietly = TRUE)) {
     op <- pbapply::pboptions(type = "timer")
-    output <- pbapply::pbapply(comb, 1, valid_subset,
+    output <- pbapply::pbapply(comb,
+                               1,
+                               get_subset,
                                effvar = effvar,
                                efffac = efffac,
                                dat = df)
   } else {
-    output <- apply(comb, 1, valid_subset,
+    output <- apply(comb,
+                    1,
+                    get_subset,
                     effvar = effvar,
                     efffac = efffac,
                     dat = df)
@@ -53,7 +67,11 @@ valid <- function(effvar,
 
   # Create results datafrane
   results <- do.call(rbind,
-                     output)
+                     output)    # Should this be the distribution of the effect size depending on its
+                                # likelihood (we could then look at the elasticity by simple derivation
+                                # and additionally give the likelihood of a researcher chosing the filter)
+                                # or are we interested in the single values (and their interaction with
+                                # Sample Size or Power)
 
   # Set class
   class(results) <- "filtR"
@@ -64,7 +82,7 @@ valid <- function(effvar,
   }
 
   if (plot) {
-    plot.valid(results)
+    get_plot(results)
   }
 
   return(results)
@@ -76,11 +94,11 @@ valid <- function(effvar,
 #'
 #' @return a df with all combinations
 
-valid_get_comb <- function(effvar,
-                           efffac,
-                           filtervars,
-                           df,
-                           sample) {
+get_comb <- function(effvar,
+                     efffac,
+                     filtervars,
+                     df,
+                     sample) {
 
   if (is.null(filtervars)) {
     filtervars <- subset(df,
@@ -91,10 +109,18 @@ valid_get_comb <- function(effvar,
                          select = filtervars)
   }
 
+  # Get number of combinations
+  # ncomb <- NULL
+  # for (filtervar in filtervars) {
+  # ncomb <- ifelse(is.null(ncomb), ncomb <- unique(df[, filtervar]) + 1, ncomb * (unique(df[, filtervar]) + 1))
+  # }
+
   # Sample observations for memory performance
   if (sample == TRUE) {
     filtervars <- filtervars[sample(1:nrow(filtervars),
-                                    round(nrow(filtervars) * 0.25)), ] # Check threshold -> bootstrap
+                                    round(nrow(filtervars) * 0.25)), ]  # Use MonteCarlo of BLB Simulation
+                                                                        # for high-dimensional problems -
+                                                                        # what is high dimensional?
   }
 
   #Add "no-filter" case for each variable
@@ -114,12 +140,13 @@ valid_get_comb <- function(effvar,
 #'
 #' @return a vector with validity criteria
 
-valid_subset <- function(x,
-                         effvar,
-                         efffac,
-                         dat) {
+get_subset <- function(x,
+                       effvar,
+                       efffac,
+                       dat) {
 
   names <- names(x)
+
   # Filter gross dataset
   for (name in names) {
     y <- x[name]
@@ -129,9 +156,11 @@ valid_subset <- function(x,
     }
 
     if (nrow(dat) == 0) {
-      return(data.frame(`Sample Size` = 0,
-                        Power = NA,
-                        `Effect Size` = NA))
+      return(data.frame(SS = 0,
+                        PO = NA,
+                        ES = NA,
+                        CL = NA,
+                        CU = NA))
     }
 
     if (is.factor(dat[, name])) {
@@ -161,22 +190,29 @@ valid_subset <- function(x,
     n <- length(d)
 
     if (n < 2) {
-      return(data.frame(`Sample Size` = n,
-                        Power = NA,
-                        `Effect Size` = NA))
+      return(data.frame(SS = (n1 + n2),
+                        PO = NA,
+                        ES = NA,
+                        CL = NA,
+                        CU = NA))
     }
 
-    esize <- as.numeric(effsize::cohen.d(d,
-                                         f,
-                                         na.rm = T)$estimate) # generalize for multiple models using reformulate and aov?
+    esize <- effsize::cohen.d(d,
+                              f,
+                              na.rm = T) # generalize for multiple models using reformulate and aov?
+
     pwr <- pwr::pwr.t.test(n = n,
-                           d = esize,
-                           type = "paired")$power
+                           d = esize$estimate,
+                           type = "paired"
+                           )$power
 
     # Store net metrics
-    results <- data.frame(`Sample Size` = n,
-                          Power = pwr,
-                          `Effect Size` = esize)
+    results <- data.frame(SS = n,
+                          PO = pwr,
+                          ES = esize$estimate,
+                          CL = esize$conf.int[[1]],
+                          CU = esize$conf.int[[2]]
+                          )
 
     # Between design
   } else {
@@ -187,23 +223,30 @@ valid_subset <- function(x,
     n2 <- ns[2]
 
     if (length(unique(f)) != 2 | any(n1 < 2, n2 < 2)) {
-      return(data.frame(`Sample Size` = (n1 + n2),
-                        Power = NA,
-                        `Effect Size` = NA))
+      return(data.frame(SS = (n1 + n2),
+                        PO = NA,
+                        ES = NA,
+                        CL = NA,
+                        CU = NA))
     }
 
     # Effect size and power
-    esize <- as.numeric(effsize::cohen.d(d,
-                                         f,
-                                         na.rm = T)$estimate)
+    esize <- effsize::cohen.d(d,
+                              f,
+                              na.rm = T)
+
     pwr <- pwr::pwr.t2n.test(n = n1,
                              n2 = n2,
-                             d = esize)$power
+                             d = esize$estimate
+                             )$power
 
     # Store net metrics
-    results <- data.frame(`Sample Size` = (n1 + n2),
-                          Power = pwr,
-                          `Effect Size` = esize)
+    results <- data.frame(SS = n1 + n2,
+                          PO = pwr,
+                          ES = esize$estimate,
+                          CL = esize$conf.int[[1]],
+                          CU = esize$conf.int[[2]]
+    )
   }
 
   return(results)
@@ -220,14 +263,17 @@ valid_subset <- function(x,
 #'
 #' @return a plot of effect size and power for all combinations
 #'
+#' @import ggplot2
 #' @importFrom graphics plot
 #'
 #' @export
 
-plot.valid <- function(x,
-                       caption = c("Effect Size vs. Filter", "Power vs. Filter"),
-                       main = "",
-                       ...) {
+get_plot <- function(x,
+                     caption = c("Effect Size vs. Filter", "Power vs. Filter"),
+                     main = "",
+                     #sorting = Sample.Size,
+                     ...) {
+
   if (!inherits(x, "filtR")) {
     stop("use only with \"filtR\" objects")
   }
@@ -235,40 +281,46 @@ plot.valid <- function(x,
   # Drop 0/NA/ INF
 
   x <- data.frame(
-    Sample.Size = x$Sample.Size,
-    Power = x$Power,
-    Effect.Size = x$Effect.Size
+    SS = x$SS,
+    PO = x$PO,
+    ES = x$ES,
+    CL = x$CL,
+    CU = x$CU
   )
 
-  x <- x[order(x$Sample.Size), ]
-  x$ID <- c(1:nrow(x))
+  x <- x[order(x$SS), ]
 
-  plot(x$ID,
-       x$Sample.Size,
-       xlab = "Combination",
-       ylab = "Sample.Size",
+  plot(x$SS,
+       x$ES,
+       xlab = "Sample.Size",
+       ylab = "Effect.Size",
        main = main,
-       type = "s")
+       type = "p")
 
-  # x <- x[order(x$Power), ]
-  # x$ID <- c(1:nrow(x))
-
-  plot(x$ID,
-       x$Power,
-       xlab = "Combination",
+  plot(x$SS,
+       x$PO,
+       xlab = "Sample.Size",
        ylab = "Power",
        main = main,
-       type = "s")
+       type = "p")
 
-  # x <- abs(x[order(x$Effect.Size, decreasing = F), ])
-  # x$ID <- c(1:nrow(x))
+  ggplot2::ggplot(data = x,
+                  ggplot2::aes(
+                    x = SS,
+                    y = ES)
+                  ) +
+    ggplot2::geom_point(aes(color = CL > 0 & CU > 0 | CL < 0 & CU < 0)) +
+    ggplot2::geom_errorbar(
+      ggplot2::aes(
+        ymin = CL,
+        ymax = CU,
+        color =  CL > 0 & CU > 0 | CL < 0 & CU < 0),
+      ) +
+    scale_color_manual(name = "Significant", values = c("red","green")) +
+    xlab("Sample Size") +
+    ylab("Effect Size") +
+    theme_minimal()
 
-  plot(x$ID,
-       x$Effect.Size,
-       xlab = "Combination",
-       ylab = "Effect Size",
-       main = main,
-       type = "s")
 }
 
 # Thu Nov 14 13:04:27 2019 ------------------------------

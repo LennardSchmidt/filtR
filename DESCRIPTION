@@ -12,7 +12,8 @@ LazyData: true
 Imports: 
     effsize,
     pwr,
-    pbapply
+    pbapply,
+    ggplot2
 RoxygenNote: 6.1.1
 Suggests: 
     testthat

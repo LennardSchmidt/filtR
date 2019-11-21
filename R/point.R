@@ -4,6 +4,7 @@
 #' @param effvar numeric, the column name of the
 #' @param efffac numeric or factor, the column name
 #' @param exp numeric or factor, vector of column names
+#' @param method character, ...
 #' @param df numeric or factor, a dataset
 #'
 #' @return tbd
@@ -16,6 +17,7 @@
 get_point <- function(effvar,
                       efffac,
                       exp,
+                      method = SS,
                       df) {
 
   var <- list()
@@ -41,11 +43,11 @@ get_point <- function(effvar,
 
   filtervars <- unlist(var)
 
-  combs <- valid_get_comb(effvar = effvar,
-                          efffac = efffac,
-                          filtervars = filtervars,
-                          df = df,
-                          sample = FALSE)
+  combs <- get_comb(effvar = effvar,
+                    efffac = efffac,
+                    filtervars = filtervars,
+                    df = df,
+                    sample = FALSE)
 
   f <- NULL
 
@@ -63,10 +65,10 @@ get_point <- function(effvar,
     stop("Filter combination does not exist in data")
   }
 
-  results <- valid(effvar = effvar,
-                   efffac = efffac,
-                   filtervars = filtervars,
-                   df = df)
+  results <- get_filter(effvar = effvar,
+                        efffac = efffac,
+                        filtervars = filtervars,
+                        df = df)
 
   results_point <- c(results$Sample.Size[id],
                      results$Power[id],
