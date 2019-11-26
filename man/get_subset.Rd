@@ -4,7 +4,16 @@
 \alias{get_subset}
 \title{Subsets original dataset and calculates validity metrics}
 \usage{
-get_subset(x, effvar, efffac, dat)
+get_subset(x, effvar, efffac, data)
+}
+\arguments{
+\item{x}{combination passed}
+
+\item{effvar}{numeric, the column name of the}
+
+\item{efffac}{numeric or factor, the column name}
+
+\item{data}{numeric or factor, a dataset}
 }
 \value{
 a vector with validity criteria

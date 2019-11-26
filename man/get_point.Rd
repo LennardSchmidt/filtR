@@ -4,7 +4,7 @@
 \alias{get_point}
 \title{Checking the validity of dataset}
 \usage{
-get_point(effvar, efffac, exp, method = SS, df)
+get_point(effvar, efffac, exp, method = "E", data)
 }
 \arguments{
 \item{effvar}{numeric, the column name of the}
@@ -15,7 +15,7 @@ get_point(effvar, efffac, exp, method = SS, df)
 
 \item{method}{character, ...}
 
-\item{df}{numeric or factor, a dataset}
+\item{data}{numeric or factor, a dataset}
 }
 \value{
 tbd
