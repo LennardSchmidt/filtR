@@ -1,35 +1,43 @@
 context("types")
 
-data <- data.frame(a = c(1:50), b = c(2:51), c = factor(sample(rep(1:2, 25))), d = c(2:51), e = factor(rep(3:4, 25)))
+#-------------------------
 
-test_that("Within output is correct type (using df, full)", {
-  expect_is(valid(effvar = "a", efffac = "b", df = data), "filtR")
+data <- data.frame(haven::read_sav("C:/Users/LENNARD.SCHMIDT/Desktop/filtR/inst/extdata/Study1.sav"))
+data$IdentificationMANIPULATION <- factor(data$IdentificationMANIPULATION)
+data$gender <- as.factor(data$gender)
+data1 <- data[,c("AllocOut", "AllocStr", "age", "gender")]
+data2 <- data[,c("IdentificationMANIPULATION", "Coop", "age", "gender")]
+
+#-------------------------
+
+test_that("Within output is correct type (using data, full)", {
+  expect_is(get_filter(effvar = "AllocOut", efffac = "AllocStr", data = data1), "filtR")
 })
 
-test_that("Between output is correct type (using df, full)", {
-  expect_is(valid(effvar = "a", efffac = "c", df = data), "filtR")
+test_that("Between output is correct type (using data, full)", {
+  expect_is(get_filter(effvar = "Coop", efffac = "IdentificationMANIPULATION", data = data2), "filtR")
 })
 
 test_that("Within output is correct type (using filtervar, full)", {
-  expect_is(valid(effvar = "a", efffac = "b", filtervars = c("d", "e"), df = data), "filtR")
+  expect_is(get_filter(effvar = "AllocOut", efffac = "AllocStr", filtervars = c("age", "gender"), data = data1), "filtR")
 })
 
 test_that("Between output is correct type (using filtervar, full)", {
-  expect_is(valid(effvar = "a", efffac = "c", filtervars = c("d", "e"), df = data), "filtR")
+  expect_is(get_filter(effvar = "Coop", efffac = "IdentificationMANIPULATION", filtervars = c("age", "gender"), data = data2), "filtR")
 })
 
-test_that("Within output is correct type (using df, sample)", {
-  expect_is(valid(effvar = "a", efffac = "b", df = data, sample = T), "filtR")
+test_that("Within output is correct type (using data, sample)", {
+  expect_is(get_filter(effvar = "AllocOut", efffac = "AllocStr", data = data1, sample = T), "filtR")
 })
 
-test_that("Between output is correct type (using df, sample)", {
-  expect_is(valid(effvar = "a", efffac = "c", df = data, sample = T), "filtR")
+test_that("Between output is correct type (using data, sample)", {
+  expect_is(get_filter(effvar = "Coop", efffac = "IdentificationMANIPULATION", data = data2, sample = T), "filtR")
 })
 
 test_that("Within output is correct type (using filtervar, sample)", {
-  expect_is(valid(effvar = "a", efffac = "b", filtervars = c("d", "e"), df = data, sample = T), "filtR")
+  expect_is(get_filter(effvar = "AllocOut", efffac = "AllocStr", filtervars = c("age", "gender"), data = data1, sample = T), "filtR")
 })
 
 test_that("Between output is correct type (using filtervar, sample)", {
-  expect_is(valid(effvar = "a", efffac = "c", filtervars = c("d", "e"), df = data, sample = T), "filtR")
+  expect_is(get_filter(effvar = "Coop", efffac = "IdentificationMANIPULATION", filtervars = c("age", "gender"), data = data2, sample = T), "filtR")
 })

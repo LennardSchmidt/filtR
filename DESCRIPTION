@@ -12,7 +12,15 @@ LazyData: true
 Imports: 
     effsize,
     pwr,
-    pbapply
+    ggplot2
 RoxygenNote: 6.1.1
 Suggests: 
-    testthat
+    testthat,
+    pbapply,
+    haven
+Authors@R: 
+    person(given = "Lennard Lukas",
+           family = "Schmidt",
+           role = "aut",
+           email = "lennardschmidt@outlook.com",
+           comment = c(ORCID = "0000-0003-2010-0685"))
