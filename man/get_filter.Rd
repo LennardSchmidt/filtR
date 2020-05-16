@@ -4,17 +4,16 @@
 \alias{get_filter}
 \title{Checking the validity of dataset}
 \usage{
-get_filter(effvar, efffac, filtervars = NULL, data, sample = FALSE,
-  plot = FALSE, smooth = FALSE)
+get_filter(outcome, treatment, filtervars = NULL, data, control = FALSE)
 }
 \arguments{
-\item{effvar}{numeric, the column name of the}
-
-\item{efffac}{numeric or factor, the column name}
-
 \item{filtervars}{numeric or factor, vector of column names}
 
 \item{data}{numeric or factor, a dataset}
+
+\item{out}{numeric, the column name of the}
+
+\item{treat}{numeric or factor, the column name}
 
 \item{sample}{boolean, if TRUE sample from observations}
 
@@ -31,6 +30,5 @@ Checking the validity of dataset
 \examples{
 library(filtR)
 data <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
-get_filter(effvar = "a", efffac = "b", data = data)
-
+get_filter(outcome = "a", treatment = "b", data = data)
 }

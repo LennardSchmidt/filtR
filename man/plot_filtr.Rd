@@ -4,8 +4,12 @@
 \alias{plot_filtr}
 \title{Plots validity metrics}
 \usage{
-plot_filtr(x, caption = c("Effect Size vs. Filter", "Power vs. Filter"),
-  main = "", ...)
+plot_filtr(
+  x,
+  caption = c("Effect Size vs. Filter", "Power vs. Filter"),
+  main = "",
+  ...
+)
 }
 \arguments{
 \item{x}{an filtR object}

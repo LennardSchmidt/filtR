@@ -4,7 +4,7 @@
 \alias{get_point}
 \title{Checking the validity of dataset}
 \usage{
-get_point(effvar, efffac, exp, method = "E", data)
+get_point(effvar, efffac, exp, method = "effect", data)
 }
 \arguments{
 \item{effvar}{numeric, the column name of the}

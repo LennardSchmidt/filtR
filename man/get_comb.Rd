@@ -4,21 +4,15 @@
 \alias{get_comb}
 \title{Get all possible filter combinations}
 \usage{
-get_comb(effvar, efffac, filtervars, data, sample)
+get_comb(outcome, treatment, filtervars, data)
 }
 \arguments{
-\item{effvar}{numeric, the column name of the}
-
-\item{efffac}{numeric or factor, the column name}
-
 \item{filtervars}{numeric or factor, vector of column names}
 
 \item{data}{numeric or factor, a dataset}
-
-\item{sample}{boolean, if TRUE sample from observations}
 }
 \value{
-a data with all combinations
+An object of class "data.frame", which includes all unique possible combinations of filter variables
 }
 \description{
 Get all possible filter combinations
