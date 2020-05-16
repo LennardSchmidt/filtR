@@ -21,16 +21,13 @@
 #'
 #' @examples
 #' library(filtR)
-#'
 #' @export
 
 get_point <- function(effvar,
                       efffac,
                       exp,
                       method = "effect",
-                      data)
-  {
-
+                      data) {
   if (!any(c("effect", "sample", "distance") %in% method)) {
     stop("Method type not available")
   }
@@ -39,50 +36,57 @@ get_point <- function(effvar,
 
   filtervars <- unlist(exp[["var"]])
 
-  results <- get_filter(effvar = effvar,
-                        efffac = efffac,
-                        filtervars = filtervars,
-                        data = data)
+  results <- get_filter(
+    effvar = effvar,
+    efffac = efffac,
+    filtervars = filtervars,
+    data = data
+  )
 
-  id <- get_id(exp,
-               results[["comb"]])
+  id <- get_id(
+    exp,
+    results[["comb"]]
+  )
 
-  sid <- get_sid(id,
-                 results[["results"]],
-                 method)
+  sid <- get_sid(
+    id,
+    results[["results"]],
+    method
+  )
 
   idL <- sid[[1]]
   idU <- sid[[2]]
 
-  results_point <- list(lower = c(Sample.Size = results[["results"]]$SS[idL],
-                                  Power = results[["results"]]$PO[idL],
-                                  Effect.Size = results[["results"]]$ES[idL],
-                                  Confidence.Interval.Lower = results[["results"]]$CL[idL],
-                                  Confidence.Interval.Upper = results[["results"]]$CU[idL]
-                                  ),
-                        point = c(Sample.Size = results[["results"]]$SS[id],
-                                  Power = results[["results"]]$PO[id],
-                                  Effect.Size = results[["results"]]$ES[id],
-                                  Confidence.Interval.Lower = results[["results"]]$CL[id],
-                                  Confidence.Interval.Upper = results[["results"]]$CU[id]
-                                  ),
-                        upper = c(Sample.Size = results[["results"]]$SS[idU],
-                                  Power = results[["results"]]$PO[idU],
-                                  Effect.Size = results[["results"]]$ES[idU],
-                                  Confidence.Interval.Lower = results[["results"]]$CL[idU],
-                                  Confidence.Interval.Upper = results[["results"]]$CU[idU]
-                                  )
-                        )
+  results_point <- list(
+    lower = c(
+      Sample.Size = results[["results"]]$SS[idL],
+      Power = results[["results"]]$PO[idL],
+      Effect.Size = results[["results"]]$ES[idL],
+      Confidence.Interval.Lower = results[["results"]]$CL[idL],
+      Confidence.Interval.Upper = results[["results"]]$CU[idL]
+    ),
+    point = c(
+      Sample.Size = results[["results"]]$SS[id],
+      Power = results[["results"]]$PO[id],
+      Effect.Size = results[["results"]]$ES[id],
+      Confidence.Interval.Lower = results[["results"]]$CL[id],
+      Confidence.Interval.Upper = results[["results"]]$CU[id]
+    ),
+    upper = c(
+      Sample.Size = results[["results"]]$SS[idU],
+      Power = results[["results"]]$PO[idU],
+      Effect.Size = results[["results"]]$ES[idU],
+      Confidence.Interval.Lower = results[["results"]]$CL[idU],
+      Confidence.Interval.Upper = results[["results"]]$CU[idU]
+    )
+  )
 
   return(results_point)
-
 }
 
 get_sid <- function(id,
                     results,
-                    method)
-  {
-
+                    method) {
   x <- data.frame(
     SS = results$SS,
     PO = results$PO,
@@ -92,15 +96,15 @@ get_sid <- function(id,
   if (method == "effect") {
     x <- x[order(x$ES), ]
     id <- which(row.names(x) == id)
-    idL <- as.numeric(row.names(x[(id - 1),]))
-    idU <- as.numeric(row.names(x[(id + 1),]))
+    idL <- as.numeric(row.names(x[(id - 1), ]))
+    idU <- as.numeric(row.names(x[(id + 1), ]))
   }
 
   if (method == "sample") {
     x <- x[order(x$SS), ]
     id <- which(row.names(x) == id)
-    idL <- as.numeric(row.names(x[(id - 1),]))
-    idU <- as.numeric(row.names(x[(id + 1),]))
+    idL <- as.numeric(row.names(x[(id - 1), ]))
+    idU <- as.numeric(row.names(x[(id + 1), ]))
   }
 
   # NOT IMPLEMENTED YET
@@ -111,59 +115,55 @@ get_sid <- function(id,
   # }
 
   return(list(lower = idL, upper = idU))
-
-  }
+}
 
 get_id <- function(exp,
                    comb,
-                   method)
-  {
-
+                   method) {
   f <- NULL
 
   for (i in 1:length(exp[["var"]])) {
-
     f <- ifelse(is.null(f),
-                f <- paste("comb$", exp[["var"]][[i]], " == ", exp[["value"]][[i]], sep = ""),
-                paste(f, paste("comb$", exp[["var"]][[i]], " == ", exp[["value"]][[i]], sep = ""), sep = " & "))
+      f <- paste("comb$", exp[["var"]][[i]], " == ", exp[["value"]][[i]], sep = ""),
+      paste(f, paste("comb$", exp[["var"]][[i]], " == ", exp[["value"]][[i]], sep = ""), sep = " & ")
+    )
   }
 
 
   id <- which(eval(parse(text = f)))
 
-  if(length(id) == 0){
+  if (length(id) == 0) {
     stop("Filter values do not exist in data")
   }
 
   return(id)
-
 }
 
-get_exp <- function(exp)
-  {
-
+get_exp <- function(exp) {
   var <- list()
   operator <- list()
   value <- list()
   i <- 1
 
   for (e in exp) {
-
     d <- gregexpr("[<>=!]=?", e)
-    var[[i]] <- trimws(substr(e,
-                              1,
-                              (eval(d[[1]]) - 1)))
-    operator[[i]] <- substr(e,
-                            d[[1]],
-                            d[[1]][1] + attr(d[[1]], "match.length") - 1)
-    value[[i]] <- trimws(substr(e,
-                                d[[1]][1] + attr(d[[1]], "match.length"),
-                                nchar(e)))
+    var[[i]] <- trimws(substr(
+      e,
+      1,
+      (eval(d[[1]]) - 1)
+    ))
+    operator[[i]] <- substr(
+      e,
+      d[[1]],
+      d[[1]][1] + attr(d[[1]], "match.length") - 1
+    )
+    value[[i]] <- trimws(substr(
+      e,
+      d[[1]][1] + attr(d[[1]], "match.length"),
+      nchar(e)
+    ))
     i <- i + 1
-
-    }
-
-  return(list(var = var, operator = operator, value = value))
-
   }
 
+  return(list(var = var, operator = operator, value = value))
+}

@@ -187,7 +187,7 @@ plot.filtr <- function(x, metric, ...) {
 
   if (requireNamespace("ggplot2", quietly = TRUE)) {
     p <- ggplot2::ggplot(
-      x[which(x$statistic == metric),],
+      x[which(x$statistic == metric), ],
       ggplot2::aes(
         x = 100,
         y = eval(rlang::sym("ID")),
@@ -207,11 +207,11 @@ plot.filtr <- function(x, metric, ...) {
         legend.key.width = grid::unit(0.1, "npc")
       ) +
       ggplot2::scale_fill_gradient2("",
-                                    low = "red",
-                                    mid = "white",
-                                    high = "blue",
-                                    midpoint = median(x$value, na.rm = T),
-                                    limits = c(min(x$value, na.rm = T), max(x$value, na.rm = T))
+        low = "red",
+        mid = "white",
+        high = "blue",
+        midpoint = (min(x$value[which(x$statistic == metric)], na.rm = T) + max(x$value[which(x$statistic == metric)], na.rm = T)) / 2,
+        limits = c(min(x$value[which(x$statistic == metric)], na.rm = T), max(x$value[which(x$statistic == metric)], na.rm = T))
       )
   }
 
