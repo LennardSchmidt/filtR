@@ -33,7 +33,7 @@ get_filter <- function(outcome, treatment, filtervars = NULL, data, control = FA
     stop("First parameter must be a numeric type")
   }
 
-  #Create model formula
+  # Create model formula
   if (control == TRUE) {
     formula <- as.formula(paste(outcome, "~", treatment, "+", paste(filtervars, collapse = "+")))
   } else {
@@ -41,17 +41,21 @@ get_filter <- function(outcome, treatment, filtervars = NULL, data, control = FA
   }
 
   # Compute all possible filter combinations
-  grid <- get_comb(outcome = outcome, treatment = treatment, filtervars = filtervars,
-                   data = data)
+  grid <- get_comb(
+    outcome = outcome, treatment = treatment, filtervars = filtervars,
+    data = data
+  )
 
   # Compute model output for every combination
-  output <- apply(grid, 1, get_results, outcome = outcome, treatment = treatment,
-                  data = data, formula = formula, cols = colnames(grid))
+  output <- apply(grid, 1, get_results,
+    outcome = outcome, treatment = treatment,
+    data = data, formula = formula, cols = colnames(grid)
+  )
 
   # Bind results to dataframe
   results <- do.call(rbind, output)
-
-  results <- results[which(results$term == treatment),]
+  results <- results[which(results$term == treatment), ]
+  results <- tibble::rowid_to_column(results, "ID")
 
   # Should this be the distribution of the effect size depending on its
   # likelihood (we could then look at the elasticity by simple derivation
@@ -60,7 +64,7 @@ get_filter <- function(outcome, treatment, filtervars = NULL, data, control = FA
   # Sample Size or Power)
 
   # Set class for output
-  class(results) <- "filtR"
+  class(results) <- append(class(results), "filtR")
 
   return(results)
 }
@@ -96,12 +100,9 @@ get_comb <- function(outcome, treatment, filtervars, data) {
 #' @return An object of class "data.frame", which includes the model output for the given combination of filter variables
 
 get_results <- function(grid, outcome, treatment, data, formula, cols) {
-
   ids <- get_ids(grid, data, cols)
 
   data <- data[ids, ]
-
-  browser()
 
   if (nrow(data) < 10) {
     return(NA)
@@ -139,7 +140,6 @@ get_results <- function(grid, outcome, treatment, data, formula, cols) {
 #' @return A vector of class "integer", which includes the rows that are within the filter thresholds
 
 get_ids <- function(grid, data, cols) {
-
   grid <- data.frame(matrix(grid, ncol = length(grid)))
   colnames(grid) <- cols
 
@@ -178,66 +178,44 @@ get_ids <- function(grid, data, cols) {
 #'
 #' @export
 
-plot_filtr <- function(x,
-                       caption = c("Effect Size vs. Filter", "Power vs. Filter"),
-                       main = "",
-                       # sorting = Sample.Size,
-                       ...) {
+plot.filtr <- function(x, metric, ...) {
   if (!inherits(x, "filtR")) {
     stop("use only with \"filtR\" objects")
   }
 
-  # Drop 0/NA/ INF
-
-  x <- data.frame(
-    SS = x[["results"]]$SS,
-    PO = x[["results"]]$PO,
-    ES = x[["results"]]$ES,
-    CL = x[["results"]]$CL,
-    CU = x[["results"]]$CU
-  )
-
-  x <- x[order(x$SS), ]
-
-  graphics::plot(x$SS,
-    x$ES,
-    xlab = "Sample.Size",
-    ylab = "Effect.Size",
-    main = main,
-    type = "p"
-  )
-
-  graphics::plot(x$SS,
-    x$PO,
-    xlab = "Sample.Size",
-    ylab = "Power",
-    main = main,
-    type = "p"
-  )
+  x <- tidyr::gather(x, statistic, value, p.value:effect, factor_key = TRUE)
 
   if (requireNamespace("ggplot2", quietly = TRUE)) {
     p <- ggplot2::ggplot(
-      data = x,
+      x[which(x$statistic == metric),],
       ggplot2::aes(
-        x = SS,
-        y = ES
+        x = 100,
+        y = eval(rlang::sym("ID")),
+        fill = eval(rlang::sym("value"))
       )
     ) +
-      ggplot2::geom_point(ggplot2::aes(color = CL > 0 & CU > 0 | CL < 0 & CU < 0)) +
-      ggplot2::geom_errorbar(
-        ggplot2::aes(
-          ymin = CL,
-          ymax = CU,
-          color = CL > 0 & CU > 0 | CL < 0 & CU < 0
-        ),
+      ggplot2::geom_tile() +
+      ggplot2::theme_bw(base_size = 12) +
+      ggplot2::labs(x = "", y = "") +
+      ggplot2::scale_x_discrete(expand = c(0, 0)) +
+      ggplot2::scale_y_discrete(expand = c(0, 0)) +
+      ggplot2::theme(
+        legend.position = "top",
+        axis.ticks = ggplot2::element_blank(),
+        axis.text.y = ggplot2::element_blank(),
+        legend.key.size = grid::unit(0.01, "npc"),
+        legend.key.width = grid::unit(0.1, "npc")
       ) +
-      ggplot2::scale_color_manual(name = "Significant", values = c("red", "green")) +
-      ggplot2::xlab("Sample Size") +
-      ggplot2::ylab("Effect Size") +
-      ggplot2::theme_minimal()
-
-    print(p)
+      ggplot2::scale_fill_gradient2("",
+                                    low = "red",
+                                    mid = "white",
+                                    high = "blue",
+                                    midpoint = median(x$value, na.rm = T),
+                                    limits = c(min(x$value, na.rm = T), max(x$value, na.rm = T))
+      )
   }
+
+  print(p)
 }
 
 # Thu Nov 14 13:04:27 2019 ------------------------------
