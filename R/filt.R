@@ -29,6 +29,20 @@
 get_filter <- function(outcome, treatment, filtervars = NULL, data, control = FALSE) {
   # add direction?
 
+  if ("data.table" %in% class(data)){
+    data = data.frame(data)
+  }
+
+  if (!(all(c(outcome, treatment) %in% colnames(data)))){
+    stop("Variable not in data")
+  }
+
+  if (!is.null(filtervars)) {
+    if (!(all(filtervars %in% colnames(data)))){
+      stop("Variable not in data")
+    }
+  }
+
   if (!any(c("numeric", "integer") %in% class(data[, outcome]))) {
     stop("First parameter must be a numeric type")
   }
@@ -76,8 +90,9 @@ get_filter <- function(outcome, treatment, filtervars = NULL, data, control = FA
 #' @return An object of class "data.frame", which includes all unique possible combinations of filter variables
 
 get_comb <- function(outcome, treatment, filtervars, data) {
+
   if (is.null(filtervars)) {
-    filtervars <- data[, -which(colnames(data) %in% c(outcome, treatment))]
+    filtervars <- data[, -which(colnames(data) %notin% c(outcome, treatment))]
   } else {
     filtervars <- data[, filtervars]
   }
