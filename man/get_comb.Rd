@@ -4,10 +4,12 @@
 \alias{get_comb}
 \title{Get all possible filter combinations}
 \usage{
-get_comb(outcome, treatment, filtervars, data)
+get_comb(outcome, treatment, data)
 }
 \arguments{
-\item{filtervars}{numeric or factor, vector of column names}
+\item{outcome}{numeric, the column name of the}
+
+\item{treatment}{numeric or factor, the column name}
 
 \item{data}{numeric or factor, a dataset}
 }

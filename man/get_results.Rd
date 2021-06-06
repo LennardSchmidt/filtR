@@ -4,14 +4,14 @@
 \alias{get_results}
 \title{Compute model output for each possible combination}
 \usage{
-get_results(grid, outcome, treatment, data, formula, cols)
+get_results(combination, data, formula, treatment)
 }
 \arguments{
-\item{data}{numeric or factor, a dataset}
+\item{combination}{TBD}
 
-\item{formula}{An object of class "formula"}
+\item{data}{TBD}
 
-\item{cols}{A vector of class "character"}
+\item{formula}{TBD}
 }
 \value{
 An object of class "data.frame", which includes the model output for the given combination of filter variables

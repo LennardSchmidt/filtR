@@ -3,3 +3,5 @@
 S3method(plot,filtr)
 export(get_filter)
 export(get_point)
+importFrom(foreach,"%do%")
+importFrom(foreach,"%dopar%")

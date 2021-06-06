@@ -4,17 +4,17 @@ data <- data.frame(a = c(1:50), b = c(2:51), c = factor(sample(rep(1:2, 25))), d
 data <- rbind(data, rep(NA, ncol(data)))
 
 test_that("Within output is correct length (using data, full)", {
-  expect_length(get_filter(effvar = "a", efffac = "b", data = data)[[1]], 459)
+  expect_length(get_filter(outcome = "a", treatment = "b", data = data)[[1]], 459)
 })
 
 test_that("Between output is correct length (using data, full)", {
-  expect_length(get_filter(effvar = "a", efffac = "c", data = data)[[1]], 7803)
+  expect_length(get_filter(outcome = "a", treatment = "c", data = data)[[1]], 7803)
 })
 
 test_that("Within output is correct length (using filtervar, full)", {
-  expect_length(get_filter(effvar = "a", efffac = "b", filtervars = c("d", "e"), data = data)[[1]], 153)
+  expect_length(get_filter(outcome = "a", treatment = "b", filtervars = c("d", "e"), data = data)[[1]], 153)
 })
 
 test_that("Between output is correct length (using filtervar, full)", {
-  expect_length(get_filter(effvar = "a", efffac = "c", filtervars = c("d", "e"), data = data)[[1]], 153)
+  expect_length(get_filter(outcome = "a", treatment = "c", filtervars = c("d", "e"), data = data)[[1]], 153)
 })

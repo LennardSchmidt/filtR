@@ -2,7 +2,7 @@ context("output")
 
 #-------------------------
 
-data <- data.frame(haven::read_sav("./inst/extdata/Study1.sav"))
+data <- data.frame(haven::read_sav("C:/Users/lenna/OneDrive/Documents/Git Projects/filtR/inst/extdata/Study1.sav"))
 data$IdentificationMANIPULATION <- as.factor(data$IdentificationMANIPULATION)
 data$gender <- as.factor(data$gender)
 data1 <- data[, c("AllocOut", "AllocStr", "age", "gender")]

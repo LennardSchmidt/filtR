@@ -11,8 +11,8 @@
 
 #' Checking the validity of dataset
 #'
-#' @param effvar numeric, the column name of the
-#' @param efffac numeric or factor, the column name
+#' @param outcome numeric, the column name of the
+#' @param treatment numeric or factor, the column name
 #' @param exp numeric or factor, vector of column names
 #' @param method character, ...
 #' @param data numeric or factor, a dataset
@@ -23,8 +23,8 @@
 #' library(filtR)
 #' @export
 
-get_point <- function(effvar,
-                      efffac,
+get_point <- function(outcome,
+                      treatment,
                       exp,
                       method = "effect",
                       data) {
@@ -37,8 +37,8 @@ get_point <- function(effvar,
   filtervars <- unlist(exp[["var"]])
 
   results <- get_filter(
-    effvar = effvar,
-    efffac = efffac,
+    outcome = outcome,
+    treatment = treatment,
     filtervars = filtervars,
     data = data
   )

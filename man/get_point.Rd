@@ -4,12 +4,12 @@
 \alias{get_point}
 \title{Checking the validity of dataset}
 \usage{
-get_point(effvar, efffac, exp, method = "effect", data)
+get_point(outcome, treatment, exp, method = "effect", data)
 }
 \arguments{
-\item{effvar}{numeric, the column name of the}
+\item{outcome}{numeric, the column name of the}
 
-\item{efffac}{numeric or factor, the column name}
+\item{treatment}{numeric or factor, the column name}
 
 \item{exp}{numeric or factor, vector of column names}
 
@@ -25,5 +25,4 @@ Checking the validity of dataset
 }
 \examples{
 library(filtR)
-
 }

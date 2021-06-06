@@ -4,22 +4,14 @@
 \alias{get_filter}
 \title{Checking the validity of dataset}
 \usage{
-get_filter(outcome, treatment, filtervars = NULL, data, control = FALSE)
+get_filter(outcome, treatment, data)
 }
 \arguments{
-\item{filtervars}{numeric or factor, vector of column names}
+\item{outcome}{numeric, the column name of the}
+
+\item{treatment}{numeric or factor, the column name}
 
 \item{data}{numeric or factor, a dataset}
-
-\item{out}{numeric, the column name of the}
-
-\item{treat}{numeric or factor, the column name}
-
-\item{sample}{boolean, if TRUE sample from observations}
-
-\item{plot}{boolean, if TRUE call plot.valid}
-
-\item{smooth}{boolean, if TRUE call smooth.valid}
 }
 \value{
 a filtR object including estimations of effect size an power for all possible filtervariable x value combination
@@ -29,6 +21,6 @@ Checking the validity of dataset
 }
 \examples{
 library(filtR)
-data <- data.frame(a = c(1:200), b = c(201:400), c = factor(rep(1:2, 100)), d = c(201:400))
-get_filter(outcome = "a", treatment = "b", data = data)
+data <- data.frame(outcome = c(1:200), treatment = sample(rep(c(1, 2), 100)), filt = rnorm(200), filt2 = rnorm(200))
+get_filter(outcome = "outcome", treatment = "treatment", data = data)
 }
